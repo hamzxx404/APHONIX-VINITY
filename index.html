@@ -1,1 +1,219 @@
-# APHONIX-VINITY
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>APHONIX VINITY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, #000000, #1a0000 50%, #001f2f);
+      color: white;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .login-form {
+      width: 90%;
+      max-width: 400px;
+      background-color: #1a0000;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+    }
+    .login-form h2 {
+      margin-top: 0;
+      text-align: left;
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .login-form label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: 15px;
+    }
+    .login-form input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    .login-button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      background-color: #0099ff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #login-status {
+      margin-top: 10px;
+      color: red;
+      font-weight: bold;
+    }
+    #intro-panel, #menu-bug {
+      display: none;
+      max-width: 400px;
+      padding: 20px;
+      background: #1a0000;
+      border-radius: 20px;
+      margin-top: 20px;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+    }
+    select, .btn, .back-btn, input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    .btn {
+      background-color: gold;
+      color: black;
+      font-weight: bold;
+    }
+    .back-btn {
+      background-color: #330000;
+      color: white;
+    }
+    .logout-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: crimson;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 999;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="logout()" class="logout-btn" id="logoutBtn">Logout</button>
+
+  <div class="login-form" id="login-form">
+    <h2>LOGIN</h2>
+    <label>Username:</label>
+    <input type="text" id="username" placeholder="Masukkan username">
+    <label>Password:</label>
+    <input type="password" id="password" placeholder="Masukkan password">
+    <button class="login-button" onclick="handleLogin()">Login</button>
+    <div id="login-status"></div>
+  </div>
+
+  <div id="intro-panel">
+    <h2>WELCOME TO APHONIX VINITY</h2>
+    <p>SELECT THE MENU TO GO TO THE NEXT MINISTRY</p>
+    <select id="menuAwal" onchange="lanjut()">
+      <option value="">-- Select Menu --</option>
+      <option value="bug">--- Menu Bug ---</option>
+    </select>
+  </div>
+
+  <div id="menu-bug">
+    <h2>MENU BUG</h2>
+    <input type="text" id="targetBug" placeholder="Masukkan nomor target (62xxxx)">
+    <select id="bugType">
+      <option value="">-- Pilih Jenis Bug --</option>
+      <option value="android">Crash android</option>
+      <option value="iphone">Crash iphone</option>
+      <option value="device">Crash device</option>
+    </select>
+    <button class="btn" onclick="kirimBug()">Kirim Bug</button>
+    <div id="outputBug" style="margin-top:10px;"></div>
+    <button class="back-btn" onclick="kembali()">⬅ Kembali</button>
+  </div>
+
+  <script>
+    async function handleLogin() {
+      const user = document.getElementById("username").value.trim().toUpperCase();
+      const pass = document.getElementById("password").value.trim();
+      const status = document.getElementById("login-status");
+
+      if (!user || !pass) {
+        status.textContent = "❌ Harap isi username dan password!";
+        return;
+      }
+
+      try {
+        const res = await fetch('/users');
+        const users = await res.json();
+        const valid = users.find(u => u.username === user && u.password === pass);
+        if (valid) {
+          document.getElementById("login-form").style.display = "none";
+          document.getElementById("intro-panel").style.display = "block";
+          document.getElementById("logoutBtn").style.display = "block";
+        } else {
+          status.textContent = "❌ Username atau password salah!";
+        }
+      } catch (err) {
+        status.textContent = "❌ Gagal terhubung ke server!";
+      }
+    }
+
+    function logout() {
+      location.reload();
+    }
+
+    function lanjut() {
+      const menu = document.getElementById("menuAwal").value;
+      document.getElementById("intro-panel").style.display = "none";
+      document.getElementById("menu-bug").style.display = menu === "bug" ? "block" : "none";
+    }
+
+    function kembali() {
+      document.getElementById("menu-bug").style.display = "none";
+      document.getElementById("intro-panel").style.display = "block";
+      document.getElementById("menuAwal").value = "";
+    }
+
+    async function kirimBug() {
+      const nomor = document.getElementById("targetBug").value.trim();
+      const tipe = document.getElementById("bugType").value;
+      const output = document.getElementById("outputBug");
+
+      if (!nomor.startsWith("62") || nomor.length < 10) {
+        output.style.color = "red";
+        output.textContent = "❌ Nomor tidak valid!";
+        return;
+      }
+      if (!tipe) {
+        output.style.color = "red";
+        output.textContent = "❌ Pilih jenis bug!";
+        return;
+      }
+
+      output.style.color = "gold";
+      output.textContent = "⏳ Mengirim bug...";
+
+      try {
+        const res = await fetch(`https://api-kamu.com/force?type=${tipe}&nomor=${nomor}`);
+        const data = await res.json();
+        output.style.color = "lightgreen";
+        output.textContent = `✅ ${data.message || 'Berhasil!'}`;
+      } catch {
+        output.style.color = "red";
+        output.textContent = "❌ Gagal kirim bug.";
+      }
+    }
+  </script>
+</body>
+    </html>
